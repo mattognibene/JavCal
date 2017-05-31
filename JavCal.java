@@ -1,7 +1,10 @@
 import javax.swing.*;
+import javax.swing.text.DefaultEditorKit;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 public class JavCal extends JFrame {
 
@@ -13,6 +16,7 @@ public class JavCal extends JFrame {
     private String firstNum="";
     private String function="";
     private String secondNum="";
+    private boolean firstNumFlag;
 
 
     public JavCal(){
@@ -27,6 +31,53 @@ public class JavCal extends JFrame {
         tfAnswer = new JTextField();
         tfAnswer.setEditable(false);
         tfAnswer.setPreferredSize(new Dimension(290,35));
+        Action beep = tfAnswer.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
+        beep.setEnabled(false);
+
+        tfAnswer.addKeyListener(
+                new KeyListener() {
+                    @Override
+                    public void keyTyped(KeyEvent e) {
+
+                        try {
+                            Integer.parseInt(Character.toString(e.getKeyChar()));
+                            String typed = Character.toString(e.getKeyChar());
+                            enterNumber(typed);
+                        } catch(Exception ex){
+                            String typed = Character.toString(e.getKeyChar());
+                            if(typed.equals("+")||typed.equals("-")||typed.equals("*")||typed.equals("/"))
+                                enterFunction(typed);
+                            else if(typed.equals("."))
+                                addDot();
+                        }
+                    }
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        if(e.getKeyCode()==8){
+                            if(!secondNum.equals("")){
+                                secondNum=secondNum.substring(0,secondNum.length()-1);
+                                tfAnswer.setText(secondNum);
+                            }else if(!function.equals("")){
+                                function="";
+                            }else if(!firstNum.equals("")){
+                                firstNum=firstNum.substring(0,firstNum.length()-1);
+                                tfAnswer.setText(firstNum);
+                            }
+                        }
+                    }
+                    @Override
+                    public void keyReleased(KeyEvent e) {}
+                }
+        );
+        tfAnswer.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (!firstNum.equals("") && !secondNum.equals(""))
+                            solve();
+                    }
+                }
+        );
 
         button = new JPanel();
         button.setPreferredSize(new Dimension(290,220));
@@ -45,6 +96,21 @@ public class JavCal extends JFrame {
 
         JButton btnPlusMinus = new JButton("±");
         btnPlusMinus.setPreferredSize(new Dimension(85,50));
+        btnPlusMinus.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if(tfAnswer.getText().equals(firstNum)&&function.equals("")){
+                            firstNum= Double.toString(Double.parseDouble(firstNum)*-1);
+                            tfAnswer.setText(firstNum);
+                        }else if(!function.equals("")){
+                            secondNum= Double.toString(Double.parseDouble(secondNum)*-1);
+                            tfAnswer.setText(secondNum);
+                        }
+
+                    }
+                }
+        );
         button.add(btnPlusMinus);
 
         JButton btnZero = new JButton("0");
@@ -54,6 +120,14 @@ public class JavCal extends JFrame {
 
         JButton btnDot = new JButton(".");
         btnDot.setPreferredSize(new Dimension(85,50));
+        btnDot.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        addDot();
+                    }
+                }
+        );
         button.add(btnDot);
 
 
@@ -110,6 +184,7 @@ public class JavCal extends JFrame {
                         secondNum="";
                         function="";
                         tfAnswer.setText("");
+                        firstNumFlag=false;
                     }
                 }
         );
@@ -139,27 +214,67 @@ public class JavCal extends JFrame {
                 tfAnswer.setText(Double.toString(Double.parseDouble(firstNum)*Double.parseDouble(secondNum)));
                 break;
         }
+        firstNum=tfAnswer.getText();
+        function="";
+        secondNum="";
+        firstNumFlag=true;
 
     }
 
+
+
     private class btnNumberHandler implements ActionListener{
         public void actionPerformed(ActionEvent event){
-            if(function.equals("")){
-                firstNum+=event.getActionCommand();
-                tfAnswer.setText(firstNum);
-            }else{
-                secondNum+=event.getActionCommand();
-                tfAnswer.setText(secondNum);
-            }
-
+            enterNumber(event.getActionCommand());
         }
     }
     private class btnFunctionHandler implements ActionListener{
             public void actionPerformed(ActionEvent e) {
-                if(function.equals("")&&!firstNum.equals(""))
-                    function=e.getActionCommand();
-
+                enterFunction(e.getActionCommand());
             }
+    }
+
+    public void enterNumber(String s){
+        if(firstNumFlag){
+            firstNum="";
+            firstNum+=s;
+            secondNum="";
+            function="";
+            firstNumFlag=false;
+            tfAnswer.setText(firstNum);
+        }else {
+            if (function.equals("")) {
+                firstNum += s;
+                tfAnswer.setText(firstNum);
+            } else {
+                secondNum += s;
+                tfAnswer.setText(secondNum);
+            }
+        }
+    }
+
+    public void enterFunction(String s){
+        if(function.equals("")&&!firstNum.equals("")) {
+            firstNumFlag = false;
+            function = s;
+        }else if(!secondNum.equals("")){
+            solve();
+            firstNumFlag=false;
+            function=s;
+        }
+    }
+    public void addDot(){
+        if(tfAnswer.getText().equals(firstNum)&&function.equals("")){
+            if(!firstNum.contains(".")){
+                firstNum+=".";
+                tfAnswer.setText(firstNum);
+            }
+        }else if(!function.equals("")){
+            if(!secondNum.contains(".")) {
+                secondNum += ".";
+                tfAnswer.setText(secondNum);
+            }
+        }
     }
 
     public static void main(String[] args) {
