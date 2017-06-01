@@ -9,8 +9,9 @@ import java.awt.event.KeyListener;
 public class JavCal extends JFrame {
 
     private JTextField tfAnswer;
-    private JPanel button;
-    private JPanel jPanelFuctions;
+    private JTextField tfFunction;
+    private JPanel jPanelNumbers;
+    private JPanel jPanelFunctions;
     private JPanel jPanelSolveFunctions;
 
     private String firstNum="";
@@ -19,7 +20,7 @@ public class JavCal extends JFrame {
     private boolean firstNumFlag;
 
 
-    public JavCal(){
+    private JavCal(){
         super("JavCal");
         Container cp = getContentPane();
         cp.setLayout(new FlowLayout());
@@ -30,7 +31,7 @@ public class JavCal extends JFrame {
 
         tfAnswer = new JTextField();
         tfAnswer.setEditable(false);
-        tfAnswer.setPreferredSize(new Dimension(290,35));
+        tfAnswer.setPreferredSize(new Dimension(250,35));
         Action beep = tfAnswer.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
         beep.setEnabled(false);
 
@@ -53,12 +54,13 @@ public class JavCal extends JFrame {
                     }
                     @Override
                     public void keyPressed(KeyEvent e) {
-                        if(e.getKeyCode()==8){
+                        if(e.getKeyCode()==8){ //BACKSPACE
                             if(!secondNum.equals("")){
                                 secondNum=secondNum.substring(0,secondNum.length()-1);
                                 tfAnswer.setText(secondNum);
                             }else if(!function.equals("")){
                                 function="";
+                                tfFunction.setText("");
                             }else if(!firstNum.equals("")){
                                 firstNum=firstNum.substring(0,firstNum.length()-1);
                                 tfAnswer.setText(firstNum);
@@ -79,9 +81,15 @@ public class JavCal extends JFrame {
                 }
         );
 
-        button = new JPanel();
-        button.setPreferredSize(new Dimension(290,220));
-        button.setLayout(new FlowLayout());
+
+        tfFunction = new JTextField("");
+        tfFunction.setPreferredSize(new Dimension(25,35));
+        tfFunction.setEditable(false);
+        tfFunction.setHorizontalAlignment(SwingConstants.CENTER);
+
+        jPanelNumbers = new JPanel();
+        jPanelNumbers.setPreferredSize(new Dimension(290,220));
+        jPanelNumbers.setLayout(new FlowLayout());
         btnNumberHandler btnNumberHandler = new btnNumberHandler();
 
 
@@ -90,7 +98,7 @@ public class JavCal extends JFrame {
                 JButton btnTemp = new JButton(Integer.toString(i + j));
                 btnTemp.setPreferredSize(new Dimension(85,50));
                 btnTemp.addActionListener(btnNumberHandler);
-                button.add(btnTemp);
+                jPanelNumbers.add(btnTemp);
 
             }
 
@@ -111,12 +119,12 @@ public class JavCal extends JFrame {
                     }
                 }
         );
-        button.add(btnPlusMinus);
+        jPanelNumbers.add(btnPlusMinus);
 
         JButton btnZero = new JButton("0");
         btnZero.setPreferredSize(new Dimension(85,50));
         btnZero.addActionListener(btnNumberHandler);
-        button.add(btnZero);
+        jPanelNumbers.add(btnZero);
 
         JButton btnDot = new JButton(".");
         btnDot.setPreferredSize(new Dimension(85,50));
@@ -128,33 +136,33 @@ public class JavCal extends JFrame {
                     }
                 }
         );
-        button.add(btnDot);
+        jPanelNumbers.add(btnDot);
 
 
-        jPanelFuctions = new JPanel();
-        jPanelFuctions.setLayout(new FlowLayout());
-        jPanelFuctions.setPreferredSize(new Dimension(290,60));
+        jPanelFunctions = new JPanel();
+        jPanelFunctions.setLayout(new FlowLayout());
+        jPanelFunctions.setPreferredSize(new Dimension(290,60));
         btnFunctionHandler btnFunctionHandler = new btnFunctionHandler();
 
         JButton btnPlus = new JButton("+");
         btnPlus.setPreferredSize(new Dimension(63,50));
         btnPlus.addActionListener(btnFunctionHandler);
-        jPanelFuctions.add(btnPlus);
+        jPanelFunctions.add(btnPlus);
         
         JButton btnMinus = new JButton("-");
         btnMinus.setPreferredSize(new Dimension(63,50));
         btnMinus.addActionListener(btnFunctionHandler);
-        jPanelFuctions.add(btnMinus);
+        jPanelFunctions.add(btnMinus);
         
         JButton btnTimes = new JButton("*");
         btnTimes.setPreferredSize(new Dimension(63,50));
         btnTimes.addActionListener(btnFunctionHandler);
-        jPanelFuctions.add(btnTimes);
+        jPanelFunctions.add(btnTimes);
         
         JButton btnDivide = new JButton("/");
         btnDivide.setPreferredSize(new Dimension(63,50));
         btnDivide.addActionListener(btnFunctionHandler);
-        jPanelFuctions.add(btnDivide);
+        jPanelFunctions.add(btnDivide);
 
 
         jPanelSolveFunctions = new JPanel();
@@ -192,8 +200,9 @@ public class JavCal extends JFrame {
 
 
         cp.add(tfAnswer);
-        cp.add(button);
-        cp.add(jPanelFuctions);
+        cp.add(tfFunction);
+        cp.add(jPanelNumbers);
+        cp.add(jPanelFunctions);
         cp.add(jPanelSolveFunctions);
 
         setVisible(true);
@@ -215,6 +224,7 @@ public class JavCal extends JFrame {
                 break;
         }
         firstNum=tfAnswer.getText();
+        tfFunction.setText("");
         function="";
         secondNum="";
         firstNumFlag=true;
@@ -234,7 +244,7 @@ public class JavCal extends JFrame {
             }
     }
 
-    public void enterNumber(String s){
+    private void enterNumber(String s){
         if(firstNumFlag){
             firstNum="";
             firstNum+=s;
@@ -253,26 +263,37 @@ public class JavCal extends JFrame {
         }
     }
 
-    public void enterFunction(String s){
+    private void enterFunction(String s){
         if(function.equals("")&&!firstNum.equals("")) {
             firstNumFlag = false;
             function = s;
+            tfFunction.setText(s);
         }else if(!secondNum.equals("")){
             solve();
             firstNumFlag=false;
             function=s;
+            tfFunction.setText(s);
         }
     }
-    public void addDot(){
-        if(tfAnswer.getText().equals(firstNum)&&function.equals("")){
-            if(!firstNum.contains(".")){
-                firstNum+=".";
-                tfAnswer.setText(firstNum);
-            }
-        }else if(!function.equals("")){
-            if(!secondNum.contains(".")) {
-                secondNum += ".";
-                tfAnswer.setText(secondNum);
+    private void addDot(){
+        if(firstNumFlag) {
+            firstNum = "";
+            firstNum += ".";
+            secondNum = "";
+            function = "";
+            firstNumFlag = false;
+            tfAnswer.setText(firstNum);
+        }else {
+            if (tfAnswer.getText().equals(firstNum) && function.equals("")) {
+                if (!firstNum.contains(".")) {
+                    firstNum += ".";
+                    tfAnswer.setText(firstNum);
+                }
+            } else if (!function.equals("")) {
+                if (!secondNum.contains(".")) {
+                    secondNum += ".";
+                    tfAnswer.setText(secondNum);
+                }
             }
         }
     }
